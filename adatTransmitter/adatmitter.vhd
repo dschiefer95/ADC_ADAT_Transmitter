@@ -50,8 +50,8 @@ end adatmitter;
 architecture adatmitter_arch of adatmitter is
 	-- state_read and state_send could be combined into a single
 	-- type if desired
-	type state_read is (idle, read1, read2, read3, read4);
-	type state_send is (idle, send1, send2, send3, send4);
+	type state_read is (idle_read, read1, read2, read3, read4);
+	type state_send is (idle_send, send1, send2, send3, send4);
 	signal state_reg_read, state_next_read : state_read;
 	signal state_reg_send, state_next_send : state_send;
 	signal reset: std_logic;
@@ -69,7 +69,7 @@ begin
 	process(mclk, reset)
 	begin
 		if (reset='1') then
-			state_reg_read <= idle;
+			state_reg_read <= idle_read;
 		elsif (mclk'event and mclk='1') then
 			state_reg_read <= state_next_read;
 		end if;
@@ -77,7 +77,9 @@ begin
 	-- state register for send
 	process(mclk)
 	begin
-		if (mclk'event and mclk='1') then
+		if (reset='1') then
+			state_reg_read <= idle_read;
+		elsif (mclk'event and mclk='1') then
 			state_reg_send <= state_next_send;
 		end if;
 	end process;
@@ -114,14 +116,45 @@ begin
 					state_next_read <= read2;
 					read_counter_next <= '0';
 				end if;
-			when ...
+				
+			when read2 =>
+				if (read_counter<24)
+					shift_next(23 downto 1) <= shift_reg(22 downto 0) & sdto1;
+				elsif (read_counter=24)
+					ch2_reg <= '1' & shift_reg[23:20] & '1' & shift_reg[19:16] & '1' & shift_reg[15:12] & '1' & shift_reg[11:8] & '1' & shift_reg[7:4] & '1' & shift_reg[3:0];
+				elsif (read_counter=32) then
+					state_next_read <= read3;
+					read_counter_next <= '0';
+				end if;
+				
+				when read3 =>
+				if (read_counter<24)
+					shift_next(23 downto 1) <= shift_reg(22 downto 0) & sdto1;
+				elsif (read_counter=24)
+					ch3_reg <= '1' & shift_reg[23:20] & '1' & shift_reg[19:16] & '1' & shift_reg[15:12] & '1' & shift_reg[11:8] & '1' & shift_reg[7:4] & '1' & shift_reg[3:0];
+				elsif (read_counter=32) then
+					state_next_read <= read4;
+					read_counter_next <= '0';
+				end if;
+				
+			when read4 =>
+				if (read_counter<24)
+					shift_next(23 downto 1) <= shift_reg(22 downto 0) & sdto1;
+				elsif (read_counter=24)
+					ch4_reg <= '1' & shift_reg[23:20] & '1' & shift_reg[19:16] & '1' & shift_reg[15:12] & '1' & shift_reg[11:8] & '1' & shift_reg[7:4] & '1' & shift_reg[3:0];
+				elsif (read_counter=32) then
+					state_next_read <= idle_read;
+					read_counter_next <= '0';
+				end if;
 		end case;
 	end process;
 	-- next-state logic for send
 	process (state_reg_send)
 	begin
 		case state_reg_send is
-			when idle =>
+			when idle_send =>
+				state_next_send <= state_reg_send;
+			when send1 =>
 				if (send_counter=23) then
 					state_next_send <= send1;
 					send_counter <= 0;

@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <report-views version="2.0" >
  <header>
-  <DateModified>2017-12-01T16:31:19</DateModified>
+  <DateModified>2017-12-02T10:21:47</DateModified>
   <ModuleName>adatmitter</ModuleName>
   <SummaryTimeStamp>Unknown</SummaryTimeStamp>
-  <SavedFilePath>C:/Users/dschi/OneDrive/Xilinx Projects/adatTransmitter/iseconfig/adatmitter.xreport</SavedFilePath>
-  <ImplementationReportsDirectory>C:/Users/dschi/OneDrive/Xilinx Projects/adatTransmitter\</ImplementationReportsDirectory>
+  <SavedFilePath>C:/Users/dschi/OneDrive/ADC_ADAT_Transmitter/adatTransmitter/iseconfig/adatmitter.xreport</SavedFilePath>
+  <ImplementationReportsDirectory>C:/Users/dschi/OneDrive/ADC_ADAT_Transmitter/adatTransmitter\</ImplementationReportsDirectory>
   <DateInitialized>2017-11-29T07:19:35</DateInitialized>
   <EnableMessageFiltering>false</EnableMessageFiltering>
  </header>

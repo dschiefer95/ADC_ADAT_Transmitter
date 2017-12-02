@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- IMPORTANT: This is an internal file that has been generated
+     by the Xilinx ISE software.  Any direct editing or
+     changes made to this file may result in unpredictable
+     behavior or data corruption.  It is strongly advised that
+     users do not edit the contents of this file. -->
+<messages>
+<msg type="error" file="HDLParsers" num="164" delta="new" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">95</arg>. <arg fmt="%s" index="3">parse error, unexpected POINT</arg>
+</msg>
+
+<msg type="error" file="HDLParsers" num="808" delta="new" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">103</arg>. <arg fmt="%s" index="3">=</arg> can not have such operands in this context.
+</msg>
+
+<msg type="error" file="HDLParsers" num="3312" delta="old" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">105</arg>. Undefined symbol &apos;<arg fmt="%s" index="3">send_counter</arg>&apos;.
+</msg>
+
+<msg type="error" file="HDLParsers" num="1209" delta="old" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">107</arg>. <arg fmt="%s" index="3">send_counter</arg>: Undefined symbol (last report in this block)
+</msg>
+
+<msg type="error" file="HDLParsers" num="164" delta="old" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">109</arg>. <arg fmt="%s" index="3">parse error, unexpected POINT</arg>
+</msg>
+
+<msg type="error" file="HDLParsers" num="164" delta="old" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">119</arg>. <arg fmt="%s" index="3">parse error, unexpected POINT</arg>
+</msg>
+
+<msg type="error" file="HDLParsers" num="164" delta="old" >&quot;<arg fmt="%s" index="1">/home/aaron.covrig/Git.Repositories/dschiefer_project/adatTransmitter/adatmitter.vhd</arg>&quot; Line <arg fmt="%d" index="2">130</arg>. <arg fmt="%s" index="3">parse error, unexpected IDENTIFIER, expecting CASE</arg>
+</msg>
+
+</messages>
+

@@ -71,9 +71,6 @@ architecture adatmitter_arch of adatmitter is
 	-- at the moment...
 	signal tff_in : std_logic;
 	
-	-- not sure where to route this, so using as a signal
-	signal reset : std_logic;
-	
 	-- buffer/transmit registers
 	signal ch1_reg : std_logic_vector(29 downto 0);
 	signal ch2_reg : std_logic_vector(29 downto 0);
@@ -83,6 +80,8 @@ architecture adatmitter_arch of adatmitter is
 	signal ch2_next : std_logic_vector(29 downto 0);
 	signal ch3_next : std_logic_vector(29 downto 0);
 	signal ch4_next : std_logic_vector(29 downto 0);
+	signal ch5678s_reg : std_logic;
+	signal ch5678s_next : std_logic;
 	
 	-- For communication between the read and send state machines
 	signal start_send : std_logic;
@@ -246,7 +245,6 @@ begin
 					state_next_send <= idle_send;
 				end if;
 				
-			-- counter values need to be figured out
 			when send1 =>
 				ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
 				if (send_counter=29) then
@@ -276,19 +274,19 @@ begin
 				if(send_counter=29) then
 					state_next_send <= send5;
 					send_counter_next <= (others => '0');
-					ch5678_next <= '1';
+					ch5678s_next <= '1';
 				end if;
 				
 			when send5 =>
-				if (send_counter=4 and ss5_counter=23) then
+				if (send_counter=4 and ss5_counter/=23) then
+					ch5678s_next <= '1';
+					send_counter_next <= (others => '0');
+					ss5_counter_next <= ss5_counter + 1;
+				elsif (send_counter=4 and ss5_counter=23) then
 					state_next_send <= send6;
 					ch5678s_next <= '1';
 					send_counter_next <= (others => '0');
 					ss5_counter_next <= (others => '0');
-				elsif (send_counter=4 and ss5_counter/=23) then
-					ch5678s_next <= '1';
-					send_counter_next <= (others => '0');
-					ss5_counter_next <= ss5_counter + 1;
 				else
 					ch5678s_next <= '0';
 					ss5_counter_next <= ss5_counter;
@@ -299,10 +297,10 @@ begin
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then
 					state_next_send <= send1;
-					ch5678s_next <= (others => '0');
+					ch5678s_next <= '0';
 					ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
 				else
-					ch5678s_next <= (others => '0');
+					ch5678s_next <= '0';
 				end if;
 		end case;
 	end process;

@@ -51,7 +51,7 @@ architecture adatmitter_arch of adatmitter is
 	-- state_read and state_send could be combined into a single
 	-- need to specify starting state value
 	type state_read is (idle_read, read1, read2, read3, read4);
-	type state_send is (idle_send, send1, send2, send3, send4);
+	type state_send is (idle_send, send1, send2, send3, send4, send5);
 	signal state_reg_read, state_next_read : state_read;
 	signal state_reg_send, state_next_send : state_send;
 	signal reset_read: std_logic;
@@ -77,13 +77,17 @@ architecture adatmitter_arch of adatmitter is
 	signal ch2_reg : std_logic_vector(29 downto 0);
 	signal ch3_reg : std_logic_vector(29 downto 0);
 	signal ch4_reg : std_logic_vector(29 downto 0);
+	signal ch1_next : std_logic_vector(29 downto 0);
+	signal ch2_next : std_logic_vector(29 downto 0);
+	signal ch3_next : std_logic_vector(29 downto 0);
+	signal ch4_next : std_logic_vector(29 downto 0);
 	
 	-- For communication between the read and send state machines
-	signal start_send : state_send;
+	signal start_send : std_logic;
 
 begin
 	-- state register for read
-	process(mclk, reset)
+	process(mclk, reset_read)
 	begin
 		if (reset_read='1') then
 			state_reg_read <= idle_read;
@@ -92,7 +96,7 @@ begin
 		end if;
 	end process;
 	-- state register for send
-	process(mclk)
+	process(mclk, reset_send)
 	begin
 		if (reset_send='1') then
 			state_reg_send <= idle_send;
@@ -120,6 +124,7 @@ begin
 		if (start_send = '1') then
 			if (mclk'event and mclk='1') then
 				send_counter <= send_counter_next;
+			end if;
 		end if;
 	end process;
 	-- ch1 register
@@ -153,7 +158,7 @@ begin
 	
 	
 	-- next-state logic for read
-	process (state_reg_read)
+	process (state_reg_read, read_counter)
 	begin
 		state_next_read <= state_next_read;
 		shift_next <= shift_next;
@@ -163,7 +168,7 @@ begin
 				if (read_counter=517*256 + 1) then		--BICK is 256*LRCK
 					state_next_read <= read1;
 					read_counter_next <= (others => '0');
-					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--??shift_next needs to be in shift_reg when read_counter=0
+					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--Don't believe this is needed here, but being explicit with shift_next values
 				else	
 					state_next_read <= idle_read;
 				end if;
@@ -185,7 +190,7 @@ begin
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
 					ch2_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-					elsif (read_counter=32) then
+				elsif (read_counter=32) then
 					state_next_read <= read3;
 					read_counter_next <= (others => '0');
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--??shift_next needs to be in shift_reg when read_counter=0
@@ -196,7 +201,7 @@ begin
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
 					ch3_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-					elsif (read_counter=32) then
+				elsif (read_counter=32) then
 					state_next_read <= read4;
 					read_counter_next <= (others => '0');
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--??shift_next needs to be in shift_reg when read_counter=0
@@ -207,7 +212,7 @@ begin
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
 					ch4_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-					elsif (read_counter=32) then
+				elsif (read_counter=32) then
 					state_next_read <= idle_read;
 					read_counter_next <= (others => '0');
 				end if;
@@ -215,9 +220,9 @@ begin
 	end process;
 	
 	-- next-state logic for send
-	process (state_reg_send)
+	process (state_reg_send, start_send)
 	begin
-		state_next_send <= state_next_send
+		state_next_send <= state_next_send;
 		send_counter_next <= send_counter + 1;
 		case state_reg_send is
 			when idle_send =>
@@ -289,6 +294,8 @@ begin
 				
 			when send4 =>
 				tff_in <= ch1_reg(29);
+				
+			when send5 =>
 				
 		end case;
 	end process;

@@ -98,7 +98,7 @@ NET "cks0" LOC = "B6"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JB2
 NET "cks1" LOC = "C5"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JB3
 NET "cks2" LOC = "B7"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JB4
 
-NET "blck" LOC = "A9"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JC1
+NET "bick" LOC = "A9"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JC1
 NET "lrck" LOC = "B9"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JC2
 #NET "PIO<82>" LOC = "A10" | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JC3
 NET "sdto1" LOC = "C9"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = JC4

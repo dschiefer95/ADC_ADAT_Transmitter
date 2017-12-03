@@ -175,9 +175,13 @@ begin
 	-- next-state logic for read
 	process (state_reg_read, read_counter)
 	begin
-		state_next_read <= state_next_read;
-		shift_next <= shift_next;
+		state_next_read <= state_reg_read;
+		shift_next <= shift_reg;
 		read_counter_next <= read_counter + 1;
+		ch1_next(29 downto 0) <= ch1_reg(29 downto 0);
+		ch2_next(29 downto 0) <= ch1_reg(29 downto 0);
+		ch3_next(29 downto 0) <= ch1_reg(29 downto 0);
+		ch4_next(29 downto 0) <= ch1_reg(29 downto 0);
 		case state_reg_read is
 			when idle_read =>
 				if (read_counter=127) then
@@ -191,8 +195,8 @@ begin
 				if (read_counter<24) then
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
-					ch1_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-					start_send <= '1';
+					ch1_next(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
+					start_send <= '1';					
 				elsif (read_counter=31) then
 					state_next_read <= read2;
 					read_counter_next <= (others => '0');
@@ -202,7 +206,7 @@ begin
 				if (read_counter<24) then
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
-					ch2_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
+					ch2_next(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
 				elsif (read_counter=31) then
 					state_next_read <= read3;
 					read_counter_next <= (others => '0');
@@ -212,7 +216,7 @@ begin
 				if (read_counter<24) then
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
-					ch3_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
+					ch3_next(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
 				elsif (read_counter=31) then
 					state_next_read <= read4;
 					read_counter_next <= (others => '0');
@@ -222,7 +226,7 @@ begin
 				if (read_counter<24) then
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
-					ch4_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
+					ch4_next(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
 				elsif (read_counter=31) then
 					state_next_read <= idle_read;
 					read_counter_next <= (others => '0');
@@ -233,14 +237,15 @@ begin
 	-- next-state logic for send
 	process (state_reg_send, start_send)
 	begin
-		state_next_send <= state_next_send;
+		state_next_send <= state_reg_send;
 		send_counter_next <= send_counter + 1;
+		ch5678s_next <= '0';
+		ss5_counter_next <= ss5_counter;
 		case state_reg_send is
 			when idle_send =>
 				if (start_send = '1') then
 					state_next_send <= send1;
 					send_counter_next <= (others => '0');
-					ch1_next(29 downto 1) <= ch1_reg(28 downto 0);		-- the ch1_next needs to be in ch1_reg as soon as state_reg_send is send1
 				else
 					state_next_send <= idle_send;
 				end if;
@@ -250,7 +255,6 @@ begin
 				if (send_counter=29) then
 					state_next_send <= send2;
 					send_counter_next <= (others => '0');
-					ch2_next(29 downto 1) <= ch2_reg(28 downto 0);
 				end if;
 				
 			when send2 =>
@@ -258,7 +262,6 @@ begin
 				if (send_counter=29) then
 					state_next_send <= send3;
 					send_counter_next <= (others => '0');
-					ch3_next(29 downto 1) <= ch3_reg(28 downto 0);
 				end if;
 			
 			when send3 =>
@@ -266,7 +269,6 @@ begin
 				if (send_counter=29) then
 					state_next_send <= send4;
 					send_counter_next <= (others => '0');
-					ch4_next(29 downto 1) <= ch4_reg(28 downto 0);
 				end if;
 			
 			when send4 =>
@@ -287,9 +289,6 @@ begin
 					ch5678s_next <= '1';
 					send_counter_next <= (others => '0');
 					ss5_counter_next <= (others => '0');
-				else
-					ch5678s_next <= '0';
-					ss5_counter_next <= ss5_counter;
 				end if;
 					
 			when send6 =>
@@ -297,25 +296,22 @@ begin
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then
 					state_next_send <= send1;
-					ch5678s_next <= '0';
-					ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
-				else
-					ch5678s_next <= '0';
+					send_counter_next <= (others => '0');
 				end if;
 		end case;
 	end process;
 	
 	
-
 	-- output logic for send
 	process(state_reg_send)
 	begin
 		case state_reg_send is
 			when idle_send =>
-				ch1_reg(29 downto 0) <= ch1_reg(29 downto 0);
-				ch2_reg(29 downto 0) <= ch2_reg(29 downto 0);
-				ch3_reg(29 downto 0) <= ch3_reg(29 downto 0);
-				ch4_reg(29 downto 0) <= ch4_reg(29 downto 0);
+				--ch1_reg(29 downto 0) <= ch1_reg(29 downto 0);
+				--ch2_reg(29 downto 0) <= ch2_reg(29 downto 0);
+				--ch3_reg(29 downto 0) <= ch3_reg(29 downto 0);
+				--ch4_reg(29 downto 0) <= ch4_reg(29 downto 0);
+				tff_in <= '0';
 				
 			when send1 =>
 				tff_in <= ch1_reg(29);

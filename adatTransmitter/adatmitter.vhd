@@ -300,6 +300,7 @@ begin
 				elsif (send_counter=15) then
 					state_next_send <= send1;
 					ch5678s_next <= (others => '0');
+					ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
 				else
 					ch5678s_next <= (others => '0');
 				end if;

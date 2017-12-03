@@ -51,7 +51,7 @@ architecture adatmitter_arch of adatmitter is
 	-- state_read and state_send could be combined into a single
 	-- need to specify starting state value
 	type state_read is (idle_read, read1, read2, read3, read4);
-	type state_send is (idle_send, send1, send2, send3, send4, send5);
+	type state_send is (idle_send, send1, send2, send3, send4, send5, send6);
 	signal state_reg_read, state_next_read : state_read;
 	signal state_reg_send, state_next_send : state_send;
 	signal reset_read: std_logic;
@@ -64,6 +64,8 @@ architecture adatmitter_arch of adatmitter is
 	signal read_counter_next : unsigned(4 downto 0);
 	signal send_counter : unsigned(7 downto 0);
 	signal send_counter_next : unsigned(7 downto 0);
+	signal ss5_counter : unsigned(4 downto 0);
+	signal ss5_counter_next : unsigned(4 downto 0);
 	
 	-- not sure which pin to route this to, so using as a signal
 	-- at the moment...
@@ -127,6 +129,13 @@ begin
 			end if;
 		end if;
 	end process;
+	-- send state5 counter
+	process(mclk)
+	begin
+		if (mclk'event and mclk='1') then
+			ss5_counter <= ss5_counter_next;
+		end if;
+	end process;
 	-- ch1 register
 	process(mclk)
 	begin
@@ -155,6 +164,13 @@ begin
 			ch4_reg <= ch4_next;
 		end if;
 	end process;
+	-- ch5678s register (for channels 5-8 and the last 16 sync bits)
+	process(mclk)
+	begin
+		if (mclk'event and mclk='1') then
+			ch5678s_reg <= ch5678s_next;
+		end if;
+	end process;
 	
 	
 	-- next-state logic for read
@@ -165,10 +181,9 @@ begin
 		read_counter_next <= read_counter + 1;
 		case state_reg_read is
 			when idle_read =>
-				if (read_counter=517*256 + 1) then		--BICK is 256*LRCK
+				if (read_counter=127) then
 					state_next_read <= read1;
 					read_counter_next <= (others => '0');
-					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--Don't believe this is needed here, but being explicit with shift_next values
 				else	
 					state_next_read <= idle_read;
 				end if;
@@ -179,10 +194,9 @@ begin
 				elsif (read_counter=24) then
 					ch1_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
 					start_send <= '1';
-				elsif (read_counter=32) then
+				elsif (read_counter=31) then
 					state_next_read <= read2;
 					read_counter_next <= (others => '0');
-					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--??shift_next needs to be in shift_reg when read_counter=0
 				end if;
 				
 			when read2 =>
@@ -190,10 +204,9 @@ begin
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
 					ch2_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-				elsif (read_counter=32) then
+				elsif (read_counter=31) then
 					state_next_read <= read3;
 					read_counter_next <= (others => '0');
-					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--??shift_next needs to be in shift_reg when read_counter=0
 				end if;
 				
 			when read3 =>
@@ -201,10 +214,9 @@ begin
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
 					ch3_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-				elsif (read_counter=32) then
+				elsif (read_counter=31) then
 					state_next_read <= read4;
 					read_counter_next <= (others => '0');
-					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;		--??shift_next needs to be in shift_reg when read_counter=0
 				end if;
 				
 			when read4 =>
@@ -212,7 +224,7 @@ begin
 					shift_next(23 downto 0) <= shift_reg(22 downto 0) & sdto1;
 				elsif (read_counter=24) then
 					ch4_reg(29 downto 0) <= '1' & shift_reg(23 downto 20) & '1' & shift_reg(19 downto 16) & '1' & shift_reg(15 downto 12) & '1' & shift_reg(11 downto 8) & '1' & shift_reg(7 downto 4) & '1' & shift_reg(3 downto 0);
-				elsif (read_counter=32) then
+				elsif (read_counter=31) then
 					state_next_read <= idle_read;
 					read_counter_next <= (others => '0');
 				end if;
@@ -264,10 +276,33 @@ begin
 				if(send_counter=29) then
 					state_next_send <= send5;
 					send_counter_next <= (others => '0');
+					ch5678_next <= '1';
 				end if;
 				
 			when send5 =>
-				
+				if (send_counter=4 and ss5_counter=23) then
+					state_next_send <= send6;
+					ch5678s_next <= '1';
+					send_counter_next <= (others => '0');
+					ss5_counter_next <= (others => '0');
+				elsif (send_counter=4 and ss5_counter/=23) then
+					ch5678s_next <= '1';
+					send_counter_next <= (others => '0');
+					ss5_counter_next <= ss5_counter + 1;
+				else
+					ch5678s_next <= '0';
+					ss5_counter_next <= ss5_counter;
+				end if;
+					
+			when send6 =>
+				if (send_counter=10) then
+					ch5678s_next <= '1';
+				elsif (send_counter=15) then
+					state_next_send <= send1;
+					ch5678s_next <= (others => '0');
+				else
+					ch5678s_next <= (others => '0');
+				end if;
 		end case;
 	end process;
 	
@@ -296,7 +331,10 @@ begin
 				tff_in <= ch1_reg(29);
 				
 			when send5 =>
+				tff_in <= ch5678s_reg;
 				
+			when send6 =>
+				tff_in <= ch5678s_reg;
 		end case;
 	end process;
 				

@@ -54,21 +54,15 @@ architecture adatmitter_arch of adatmitter is
 	type state_send is (idle_send, send1, send2, send3, send4, send5, send6);
 	signal state_reg_read, state_next_read : state_read;
 	signal state_reg_send, state_next_send : state_send;
-	signal reset_read: std_logic;
-	signal reset_send: std_logic;
 	signal shift_reg : std_logic_vector(23 downto 0);
 	signal shift_next : std_logic_vector(23 downto 0);
 	
-	-- need to verify if this can be used as implicit memory like this:
-	signal read_counter : unsigned(4 downto 0);
-	signal read_counter_next : unsigned(4 downto 0);
-	signal send_counter : unsigned(7 downto 0);
-	signal send_counter_next : unsigned(7 downto 0);
-	signal ss5_counter : unsigned(4 downto 0);
-	signal ss5_counter_next : unsigned(4 downto 0);
+	-- counters
+	signal read_counter, read_counter_next : std_logic_vector(6 downto 0) := "0000000";
+	signal send_counter, send_counter_next : std_logic_vector(6 downto 0) := "0000000";
+	signal ss5_counter, ss5_counter_next : std_logic_vector(4 downto 0) := "00000";
 	
-	-- not sure which pin to route this to, so using as a signal
-	-- at the moment...
+	-- input of T-flipflop
 	signal tff_in : std_logic;
 	
 	-- buffer/transmit registers
@@ -88,20 +82,16 @@ architecture adatmitter_arch of adatmitter is
 
 begin
 	-- state register for read
-	process(mclk, reset_read)
+	process(mclk)
 	begin
-		if (reset_read='1') then
-			state_reg_read <= idle_read;
-		elsif (mclk'event and mclk='1') then
+		if (mclk'event and mclk='1') then
 			state_reg_read <= state_next_read;
 		end if;
 	end process;
 	-- state register for send
-	process(mclk, reset_send)
+	process(mclk)
 	begin
-		if (reset_send='1') then
-			state_reg_send <= idle_send;
-		elsif (mclk'event and mclk='1') then
+		if (mclk'event and mclk='1') then
 			state_reg_send <= state_next_send;
 		end if;
 	end process;
@@ -177,14 +167,14 @@ begin
 	begin
 		state_next_read <= state_reg_read;
 		shift_next <= shift_reg;
-		read_counter_next <= read_counter + 1;
+		read_counter_next <= read_counter + '1';
 		ch1_next(29 downto 0) <= ch1_reg(29 downto 0);
-		ch2_next(29 downto 0) <= ch1_reg(29 downto 0);
-		ch3_next(29 downto 0) <= ch1_reg(29 downto 0);
-		ch4_next(29 downto 0) <= ch1_reg(29 downto 0);
+		ch2_next(29 downto 0) <= ch2_reg(29 downto 0);
+		ch3_next(29 downto 0) <= ch3_reg(29 downto 0);
+		ch4_next(29 downto 0) <= ch4_reg(29 downto 0);
 		case state_reg_read is
 			when idle_read =>
-				if (read_counter=127) then
+				if (read_counter="1111111") then		-- should count to 127
 					state_next_read <= read1;
 					read_counter_next <= (others => '0');
 				else	
@@ -235,10 +225,10 @@ begin
 	end process;
 	
 	-- next-state logic for send
-	process (state_reg_send, start_send)
+	process (state_reg_send, start_send, send_counter)
 	begin
 		state_next_send <= state_reg_send;
-		send_counter_next <= send_counter + 1;
+		send_counter_next <= send_counter + '1';
 		ch5678s_next <= '0';
 		ss5_counter_next <= ss5_counter;
 		case state_reg_send is
@@ -307,10 +297,6 @@ begin
 	begin
 		case state_reg_send is
 			when idle_send =>
-				--ch1_reg(29 downto 0) <= ch1_reg(29 downto 0);
-				--ch2_reg(29 downto 0) <= ch2_reg(29 downto 0);
-				--ch3_reg(29 downto 0) <= ch3_reg(29 downto 0);
-				--ch4_reg(29 downto 0) <= ch4_reg(29 downto 0);
 				tff_in <= '0';
 				
 			when send1 =>

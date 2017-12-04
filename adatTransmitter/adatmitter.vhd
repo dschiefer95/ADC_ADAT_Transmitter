@@ -120,7 +120,7 @@ begin
 		end if;
 	end process;
 	-- send counter
-	process(mclk)
+	process(mclk, start_send)
 	begin
 		if (start_send = '1') then
 			if (mclk'event and mclk='1') then
@@ -317,13 +317,13 @@ begin
 				tff_in <= ch1_reg(29);
 				
 			when send2 =>
-				tff_in <= ch1_reg(29);
+				tff_in <= ch2_reg(29);
 				
 			when send3 =>
-				tff_in <= ch1_reg(29);
+				tff_in <= ch3_reg(29);
 				
 			when send4 =>
-				tff_in <= ch1_reg(29);
+				tff_in <= ch4_reg(29);
 				
 			when send5 =>
 				tff_in <= ch5678s_reg;

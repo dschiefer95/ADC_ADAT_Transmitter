@@ -50,8 +50,6 @@ entity adatmitter is
 end adatmitter;
 
 architecture adatmitter_arch of adatmitter is
-	-- state_read and state_send could be combined into a single
-	-- need to specify starting state value
 	type state_read is (idle_read, read1, read2, read3, read4);
 	type state_send is (idle_send, send1, send2, send3, send4, send5, send6);
 	signal state_reg_read, state_next_read : state_read;
@@ -80,87 +78,27 @@ architecture adatmitter_arch of adatmitter is
 	signal ch5678s_next : std_logic;
 
 begin
-	-- state register for read
 	process(mclk)
 	begin
 		if (mclk'event and mclk='1') then
+			-- state registers
 			state_reg_read <= state_next_read;
-		end if;
-	end process;
-	-- state register for send
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			state_reg_send <= state_next_send;
-		end if;
-	end process;
-	-- integrity counter
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
+			
+			-- counters
 			integrity_counter <= integrity_counter_next;
-		end if;
-	end process;
-	-- read counter
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			read_counter <= read_counter_next;
-		end if;
-	end process;
-	-- send counter
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			send_counter <= send_counter_next;
-		end if;
-	end process;
-	-- send state5 counter
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			ss5_counter <= ss5_counter_next;
-		end if;
-	end process;
-	-- ch1 register
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
+			
+			-- channel registers (ch5678s register for channels 5-8 and the last 16 sync bits)
 			ch1_reg <= ch1_next;
-		end if;
-	end process;
-	-- ch2 register
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			ch2_reg <= ch2_next;
-		end if;
-	end process;
-	-- ch3 register
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			ch3_reg <= ch3_next;
-		end if;
-	end process;
-	-- ch4 register
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			ch4_reg <= ch4_next;
-		end if;
-	end process;
-	-- ch5678s register (for channels 5-8 and the last 16 sync bits)
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
 			ch5678s_reg <= ch5678s_next;
-		end if;
-	end process;
-	-- T flip flop
-	process(mclk)
-	begin
-		if (mclk'event and mclk='1') then
+			
+			-- T flip flop
 			tff_out <= tff_in xor tff_out;
 		end if;
 	end process;
@@ -186,11 +124,9 @@ begin
 		-- read state machine
 		case state_reg_read is
 			when idle_read =>
-				if (read_counter=127) then		-- should count to 127
+				if (read_counter=127) then
 					state_next_read <= read1;
 					read_counter_next <= (others => '0');
-				else	
-					state_next_read <= idle_read;
 				end if;
 		
 			when read1 =>
@@ -328,87 +264,4 @@ begin
 	end process;
 				
 end adatmitter_arch;
-
-	
-	-- next-state logic for send
---	process (state_reg_send, start_send, send_counter, ss5_counter, read_counter, unload_ch1_buffer, unload_ch2_buffer, unload_ch3_buffer, unload_ch4_buffer)
---	begin
---		state_next_send <= state_reg_send;
---		send_counter_next <= send_counter + 1;
---		ch5678s_next <= '0';
---		ss5_counter_next <= ss5_counter;
---		
---		if (unload_ch1_buffer=1) then
---			ch1_next(29 downto 0) <= ch1_buffer_reg(29 downto 0)
---		elsif (unload_ch2_buffer=1) then
---			ch2_next(29 downto 0) <= ch2_buffer_reg(29 downto 0)
---		elsif (unload_ch3_buffer=1) then
---			ch3_next(29 downto 0) <= ch3_buffer_reg(29 downto 0)
---		elsif (unload_ch4_buffer=1) then
---			ch4_next(29 downto 0) <= ch4_buffer_reg(29 downto 0)
---		end if;
---		ch1_next(29 downto 0) <= ch1_reg(29 downto 0);
---		ch2_next(29 downto 0) <= ch2_reg(29 downto 0);
---		ch3_next(29 downto 0) <= ch3_reg(29 downto 0);
---		ch4_next(29 downto 0) <= ch4_reg(29 downto 0);
---		
---		case state_reg_send is
---			when idle_send =>
---				if (read_counter=24) then
---					state_next_send <= send1;
---					send_counter_next <= (others => '0');
---				else
---					state_next_send <= idle_send;
---				end if;
---				
---			when send1 =>
---				ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
---				if (send_counter=29) then
---					state_next_send <= send2;
---					send_counter_next <= (others => '0');
---				end if;
---				
---			when send2 =>
---				ch2_next(29 downto 1) <= ch2_reg(28 downto 0);
---				if (send_counter=29) then
---					state_next_send <= send3;
---					send_counter_next <= (others => '0');
---				end if;
---			
---			when send3 =>
---				ch3_next(29 downto 1) <= ch3_reg(28 downto 0);
---				if (send_counter=29) then
---					state_next_send <= send4;
---					send_counter_next <= (others => '0');
---				end if;
---			
---			when send4 =>
---				ch4_next(29 downto 1) <= ch4_reg(28 downto 0);
---				if(send_counter=29) then
---					state_next_send <= send5;
---					send_counter_next <= (others => '0');
---					ch5678s_next <= '1';
---				end if;
---				
---			when send5 =>
---				if (send_counter=4 and ss5_counter/=23) then
---					ch5678s_next <= '1';
---					send_counter_next <= (others => '0');
---					ss5_counter_next <= ss5_counter + 1;
---				elsif (send_counter=4 and ss5_counter=23) then
---					state_next_send <= send6;
---					ch5678s_next <= '1';
---					send_counter_next <= (others => '0');
---					ss5_counter_next <= (others => '0');
---				end if;
---					
---			when send6 =>
---				if (send_counter=10) then
---					ch5678s_next <= '1';
---				elsif (send_counter=15) then
---					state_next_send <= send1;
---					send_counter_next <= (others => '0');
---				end if;
---		end case;
---	end process;
 

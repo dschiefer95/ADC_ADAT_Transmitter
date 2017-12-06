@@ -80,6 +80,8 @@ architecture adatmitter_arch of adatmitter is
 	-- clock divider
 	signal fs_clock : std_logic;
 	signal fs_counter : unsigned(7 downto 0) := "00000000";
+	
+	obuf_inst : OBUF port map (0 => dif);
 
 begin
 	process(mclk)
@@ -277,10 +279,6 @@ begin
 				tff_in <= ch5678s_reg;
 		end case;
 	end process;
-	
-	-- drive
-	-- Buf stuff
-	--BUFG_inst: OBUF Port Map (mclk,c_reg);
 				
 end adatmitter_arch;
 

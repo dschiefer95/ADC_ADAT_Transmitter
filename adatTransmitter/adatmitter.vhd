@@ -58,9 +58,9 @@ architecture adatmitter_arch of adatmitter is
 	signal shift_next : std_logic_vector(23 downto 0);
 	
 	-- counters
-	signal read_counter, read_counter_next : std_logic_vector(6 downto 0) := "0000000";
-	signal send_counter, send_counter_next : std_logic_vector(6 downto 0) := "0000000";
-	signal ss5_counter, ss5_counter_next : std_logic_vector(4 downto 0) := "00000";
+	signal read_counter, read_counter_next : unsigned(6 downto 0) := "0000000";
+	signal send_counter, send_counter_next : unsigned(6 downto 0) := "0000000";
+	signal ss5_counter, ss5_counter_next : unsigned(4 downto 0) := "00000";
 	
 	-- input of T-flipflop
 	signal tff_in : std_logic;
@@ -163,18 +163,18 @@ begin
 	
 	
 	-- next-state logic for read
-	process (state_reg_read, read_counter)
+	process (state_reg_read, read_counter, shift_reg, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
 	begin
 		state_next_read <= state_reg_read;
 		shift_next <= shift_reg;
-		read_counter_next <= read_counter + '1';
+		read_counter_next <= read_counter + 1;
 		ch1_next(29 downto 0) <= ch1_reg(29 downto 0);
 		ch2_next(29 downto 0) <= ch2_reg(29 downto 0);
 		ch3_next(29 downto 0) <= ch3_reg(29 downto 0);
 		ch4_next(29 downto 0) <= ch4_reg(29 downto 0);
 		case state_reg_read is
 			when idle_read =>
-				if (read_counter="1111111") then		-- should count to 127
+				if (read_counter=127) then		-- should count to 127
 					state_next_read <= read1;
 					read_counter_next <= (others => '0');
 				else	
@@ -225,10 +225,10 @@ begin
 	end process;
 	
 	-- next-state logic for send
-	process (state_reg_send, start_send, send_counter)
+	process (state_reg_send, start_send, send_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, ss5_counter)
 	begin
 		state_next_send <= state_reg_send;
-		send_counter_next <= send_counter + '1';
+		send_counter_next <= send_counter + 1;
 		ch5678s_next <= '0';
 		ss5_counter_next <= ss5_counter;
 		case state_reg_send is
@@ -293,7 +293,7 @@ begin
 	
 	
 	-- output logic for send
-	process(state_reg_send)
+	process(state_reg_send, ch1_reg, ch2_reg, ch3_reg, ch4_reg, ch5678s_reg)
 	begin
 		case state_reg_send is
 			when idle_send =>

@@ -76,6 +76,10 @@ architecture adatmitter_arch of adatmitter is
 	signal ch4_next : std_logic_vector(29 downto 0);
 	signal ch5678s_reg : std_logic;
 	signal ch5678s_next : std_logic;
+	
+	-- clock divider
+	signal fs_clock : std_logic;
+	signal fs_counter : unsigned(7 downto 0) := "00000000";
 
 begin
 	process(mclk)
@@ -100,9 +104,20 @@ begin
 			
 			-- T flip flop
 			tff_out <= tff_in xor tff_out;
+			
+			-- clock divider for 48khz sample rate
+			if (fs_counter=128) then
+				fs_clock <= not(fs_clock);
+				fs_counter <= (others => '0');
+			else
+				fs_counter <= fs_counter + 1;
+			end if;
 		end if;
 	end process;
+	
 	transmit <= tff_out;
+	bick <= mclk;
+	lrck <= fs_clock;
 	
 	-- next-state logic
 	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
@@ -262,6 +277,10 @@ begin
 				tff_in <= ch5678s_reg;
 		end case;
 	end process;
+	
+	-- drive
+	-- Buf stuff
+	--BUFG_inst: OBUF Port Map (mclk,c_reg);
 				
 end adatmitter_arch;
 

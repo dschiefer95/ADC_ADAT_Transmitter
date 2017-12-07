@@ -32,24 +32,52 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity adatmitter is
 	port (
-		mclk : in std_logic;
-		sdto1 : in std_logic;
+		mclk_pin : in std_logic;
+		sdto1_pin : in std_logic;
 		
-		bick : out std_logic;
-		lrck : out std_logic;
-		pdn : out std_logic := '1';
-		tdm1 : out std_logic := '0';
-		tdm0 : out std_logic := '1';
-		msn : out std_logic := '0';
-		dif : out std_logic := '0';
-		cks0 : out std_logic := '0';
-		cks1 : out std_logic := '1';
-		cks2 : out std_logic := '0';
-		transmit : out std_logic
+		bick_pin : out std_logic;
+		lrck_pin : out std_logic;
+		pdn_pin : out std_logic;
+		tdm1_pin : out std_logic;
+		tdm0_pin : out std_logic;
+		msn_pin : out std_logic;
+		dif_pin : out std_logic;
+		cks0_pin : out std_logic;
+		cks1_pin : out std_logic;
+		cks2_pin : out std_logic;
+		transmit_pin : out std_logic
 	);	
 end adatmitter;
 
 architecture adatmitter_arch of adatmitter is
+	component IBUFG
+		port (
+			I: in std_logic;
+			O: out std_logic
+		);
+	end component;
+	
+	component BUFG
+		port (
+			I: in std_logic;
+			O: out std_logic
+		);
+	end component;
+	
+	component OBUF
+		port (
+			I: in std_logic;
+			O: out std_logic
+		);
+	end component;
+	
+	component IBUF
+		port (
+			I: in std_logic;
+			O: out std_logic
+		);
+	end component;
+	
 	type state_read is (idle_read, read1, read2, read3, read4);
 	type state_send is (idle_send, send1, send2, send3, send4, send5, send6);
 	signal state_reg_read, state_next_read : state_read;
@@ -81,9 +109,41 @@ architecture adatmitter_arch of adatmitter is
 	signal fs_clock : std_logic;
 	signal fs_counter : unsigned(7 downto 0) := "00000000";
 	
-	obuf_inst : OBUF port map (0 => dif);
+	-- i/o buf stuff
+	signal mclk_ibufg : std_logic;
+	signal mclk : std_logic;
+	signal sdto1 : std_logic;
+	signal bick : std_logic;
+	signal lrck : std_logic;
+	signal transmit : std_logic;
+	signal dif : std_logic := '0';
+	signal pdn : std_logic := '1';
+	signal msn : std_logic := '0';
+	signal cks0 : std_logic := '0';
+	signal cks1 : std_logic := '1';
+	signal cks2 : std_logic := '0';
+	signal tdm1 : std_logic := '1';
+	signal tdm0 : std_logic := '0';
 
 begin
+	mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk_ibufg);
+	mclk_bufg_inst : BUFG port map (I => mclk_ibufg, O => mclk);
+	
+	sdto1_inst : IBUF port map (I => sdto1_pin, O => sdto1);
+	
+	bick_inst : OBUF port map (I => bick, O => bick_pin);
+	lrck_inst : OBUF port map (I => lrck, O => lrck_pin);
+	transmit_inst : OBUF port map (I => transmit, O => transmit_pin);
+	dif_inst : OBUF port map (I => dif, O => dif_pin);
+	pdn_inst : OBUF port map (I => pdn, O => pdn_pin);
+	msn_inst : OBUF port map (I => msn, O => msn_pin);
+	cks0_inst : OBUF port map (I => cks0, O => cks0_pin);
+	cks1_inst : OBUF port map (I => cks1, O => cks1_pin);
+	cks2_inst : OBUF port map (I => cks2, O => cks2_pin);
+	tdm0_inst : OBUF port map (I => tdm0, O => tdm0_pin);
+	tdm1_inst : OBUF port map (I => tdm1, O => tdm1_pin);
+	
+		
 	process(mclk)
 	begin
 		if (mclk'event and mclk='1') then

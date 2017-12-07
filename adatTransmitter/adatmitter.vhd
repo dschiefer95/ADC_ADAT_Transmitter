@@ -34,6 +34,7 @@ entity adatmitter is
 	port (
 		mclk_pin : in std_logic;
 		sdto1_pin : in std_logic;
+		--ovf_pin : in std_logic;
 		
 		bick_pin : out std_logic;
 		lrck_pin : out std_logic;
@@ -45,7 +46,9 @@ entity adatmitter is
 		cks0_pin : out std_logic;
 		cks1_pin : out std_logic;
 		cks2_pin : out std_logic;
-		transmit_pin : out std_logic
+		transmit_pin : out std_logic;
+		hpfe_pin : out std_logic;
+		mono_pin : out std_logic
 	);	
 end adatmitter;
 
@@ -113,6 +116,7 @@ architecture adatmitter_arch of adatmitter is
 	signal mclk_ibufg : std_logic;
 	signal mclk : std_logic;
 	signal sdto1 : std_logic;
+	--signal ovf : std_logic;
 	signal bick : std_logic;
 	signal lrck : std_logic;
 	signal transmit : std_logic;
@@ -124,6 +128,8 @@ architecture adatmitter_arch of adatmitter is
 	signal cks2 : std_logic := '0';
 	signal tdm1 : std_logic := '1';
 	signal tdm0 : std_logic := '0';
+	signal hpfe : std_logic := '1';
+	signal mono : std_logic := '0';
 
 begin
 	--mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk_ibufg);
@@ -131,6 +137,7 @@ begin
 	mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk);
 	
 	sdto1_inst : IBUF port map (I => sdto1_pin, O => sdto1);
+	--ovf_inst : IBUF port map (I => ovf_pin, O => ovf);
 	
 	bick_inst : OBUF port map (I => bick, O => bick_pin);
 	lrck_inst : OBUF port map (I => lrck, O => lrck_pin);
@@ -143,8 +150,22 @@ begin
 	cks2_inst : OBUF port map (I => cks2, O => cks2_pin);
 	tdm0_inst : OBUF port map (I => tdm0, O => tdm0_pin);
 	tdm1_inst : OBUF port map (I => tdm1, O => tdm1_pin);
+	hpfe_inst : OBUF port map (I => hpfe, O => hpfe_pin);
+	mono_inst : OBUF port map (I => mono, O => mono_pin);
 	
-		
+	dif <= '0';
+	pdn <= '1';
+	msn <= '0';
+	cks0 <= '0';
+	cks1 <= '1';
+	cks2 <= '0';
+	tdm1 <= '1';
+	tdm0 <= '0';
+	hpfe <= '1';
+	mono <= '0';
+	
+	
+	
 	process(mclk)
 	begin
 		if (mclk'event and mclk='1') then

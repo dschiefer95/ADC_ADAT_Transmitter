@@ -126,8 +126,9 @@ architecture adatmitter_arch of adatmitter is
 	signal tdm0 : std_logic := '0';
 
 begin
-	mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk_ibufg);
-	mclk_bufg_inst : BUFG port map (I => mclk_ibufg, O => mclk);
+	--mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk_ibufg);
+	--mclk_bufg_inst : BUFG port map (I => mclk_ibufg, O => mclk);
+	mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk);
 	
 	sdto1_inst : IBUF port map (I => sdto1_pin, O => sdto1);
 	

@@ -32,55 +32,32 @@ use IEEE.NUMERIC_STD.ALL;
 
 entity adatmitter is
 	port (
-		mclk_pin : in std_logic;
-		sdto1_pin : in std_logic;
+		mhz50_out : out std_logic;
+		mhz50_in : in std_logic;
+	
+		mclk : in std_logic;
+		sdto1 : in std_logic;
 		--ovf_pin : in std_logic;
 		
-		bick_pin : out std_logic;
-		lrck_pin : out std_logic;
-		pdn_pin : out std_logic;
-		tdm1_pin : out std_logic;
-		tdm0_pin : out std_logic;
-		msn_pin : out std_logic;
-		dif_pin : out std_logic;
-		cks0_pin : out std_logic;
-		cks1_pin : out std_logic;
-		cks2_pin : out std_logic;
-		transmit_pin : out std_logic;
-		hpfe_pin : out std_logic;
-		mono_pin : out std_logic
+		mclk_out : out std_logic;
+		bick : out std_logic;
+		lrck : out std_logic;
+		pdn : out std_logic;
+		tdm1 : out std_logic;
+		tdm0 : out std_logic;
+		msn : out std_logic;
+		dif : out std_logic;
+		cks0 : out std_logic;
+		cks1 : out std_logic;
+		cks2 : out std_logic;
+		transmit: out std_logic;
+		hpfe : out std_logic;
+		mono : out std_logic
 	);	
 end adatmitter;
 
 architecture adatmitter_arch of adatmitter is
-	component IBUFG
-		port (
-			I: in std_logic;
-			O: out std_logic
-		);
-	end component;
-	
-	component BUFG
-		port (
-			I: in std_logic;
-			O: out std_logic
-		);
-	end component;
-	
-	component OBUF
-		port (
-			I: in std_logic;
-			O: out std_logic
-		);
-	end component;
-	
-	component IBUF
-		port (
-			I: in std_logic;
-			O: out std_logic
-		);
-	end component;
-	
+
 	type state_read is (idle_read, read1, read2, read3, read4);
 	type state_send is (idle_send, send1, send2, send3, send4, send5, send6);
 	signal state_reg_read, state_next_read : state_read;
@@ -111,48 +88,8 @@ architecture adatmitter_arch of adatmitter is
 	-- clock divider
 	signal fs_clock : std_logic;
 	signal fs_counter : unsigned(7 downto 0) := "00000000";
-	
-	-- i/o buf stuff
-	signal mclk_ibufg : std_logic;
-	signal mclk : std_logic;
-	signal sdto1 : std_logic;
-	--signal ovf : std_logic;
-	signal bick : std_logic;
-	signal lrck : std_logic;
-	signal transmit : std_logic;
-	signal dif : std_logic := '0';
-	signal pdn : std_logic := '1';
-	signal msn : std_logic := '0';
-	signal cks0 : std_logic := '0';
-	signal cks1 : std_logic := '1';
-	signal cks2 : std_logic := '0';
-	signal tdm1 : std_logic := '1';
-	signal tdm0 : std_logic := '0';
-	signal hpfe : std_logic := '1';
-	signal mono : std_logic := '0';
 
-begin
-	--mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk_ibufg);
-	--mclk_bufg_inst : BUFG port map (I => mclk_ibufg, O => mclk);
-	mclk_ibufg_inst : IBUFG port map (I => mclk_pin, O => mclk);
-	
-	sdto1_inst : IBUF port map (I => sdto1_pin, O => sdto1);
-	--ovf_inst : IBUF port map (I => ovf_pin, O => ovf);
-	
-	bick_inst : OBUF port map (I => bick, O => bick_pin);
-	lrck_inst : OBUF port map (I => lrck, O => lrck_pin);
-	transmit_inst : OBUF port map (I => transmit, O => transmit_pin);
-	dif_inst : OBUF port map (I => dif, O => dif_pin);
-	pdn_inst : OBUF port map (I => pdn, O => pdn_pin);
-	msn_inst : OBUF port map (I => msn, O => msn_pin);
-	cks0_inst : OBUF port map (I => cks0, O => cks0_pin);
-	cks1_inst : OBUF port map (I => cks1, O => cks1_pin);
-	cks2_inst : OBUF port map (I => cks2, O => cks2_pin);
-	tdm0_inst : OBUF port map (I => tdm0, O => tdm0_pin);
-	tdm1_inst : OBUF port map (I => tdm1, O => tdm1_pin);
-	hpfe_inst : OBUF port map (I => hpfe, O => hpfe_pin);
-	mono_inst : OBUF port map (I => mono, O => mono_pin);
-	
+begin	
 	dif <= '0';
 	pdn <= '1';
 	msn <= '0';
@@ -164,11 +101,16 @@ begin
 	hpfe <= '1';
 	mono <= '0';
 	
+	transmit <= tff_out;
+	bick <= mclk;
+	lrck <= fs_clock;
+	mclk_out <= mclk;
 	
+	mhz50_out <= mhz50_in;
 	
 	process(mclk)
 	begin
-		if (mclk'event and mclk='1') then
+		if (mclk'event and mclk='0') then
 			-- state registers
 			state_reg_read <= state_next_read;
 			state_reg_send <= state_next_send;
@@ -198,10 +140,6 @@ begin
 			end if;
 		end if;
 	end process;
-	
-	transmit <= tff_out;
-	bick <= mclk;
-	lrck <= fs_clock;
 	
 	-- next-state logic
 	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
@@ -283,14 +221,14 @@ begin
 		-- send state machine
 		case state_reg_send is
 			when idle_send =>
-				
+			
 			when send1 =>
 				ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
 				if (send_counter=29) then
 					state_next_send <= send2;
 					send_counter_next <= (others => '0');
 				end if;
-				
+			
 			when send2 =>
 				ch2_next(29 downto 1) <= ch2_reg(28 downto 0);
 				if (send_counter=29) then

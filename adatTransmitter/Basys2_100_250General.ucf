@@ -52,8 +52,8 @@ NET "mhz50_in" LOC = "B8"; # Bank = 0, Signal name = MCLK
 #NET "Led<4>" LOC = "N5" ;  # Bank = 2, Signal name = LD4
 #NET "Led<3>" LOC = "P6" ; # Bank = 2, Signal name = LD3
 #NET "Led<2>" LOC = "P7" ; # Bank = 3, Signal name = LD2
-NET "statesyncnot_led" LOC = "M11" ; # Bank = 2, Signal name = LD1
-NET "statesync_led" LOC = "M5" ;  # Bank = 2, Signal name = LD0
+#NET "statesyncnot_led" LOC = "M11" ; # Bank = 2, Signal name = LD1
+#NET "statesync_led" LOC = "M5" ;  # Bank = 2, Signal name = LD0
 
 # Pin assignment for SWs
 #NET "sw<7>" LOC = "N3";  # Bank = 2, Signal name = SW7

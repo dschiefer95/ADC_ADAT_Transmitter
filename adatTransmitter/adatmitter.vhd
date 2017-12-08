@@ -52,10 +52,10 @@ entity adatmitter is
 		cks2 : out std_logic;
 		transmit: out std_logic;
 		hpfe : out std_logic;
-		mono : out std_logic;
+		mono : out std_logic
 		
-		statesync_led : out std_logic;
-		statesyncnot_led : out std_logic
+--		statesync_led : out std_logic;
+--		statesyncnot_led : out std_logic
 	);	
 end adatmitter;
 
@@ -93,8 +93,8 @@ architecture adatmitter_arch of adatmitter is
 	signal fs_counter : unsigned(7 downto 0) := "00000000";
 	
 	--sync leds
-	signal statesyncled_send : std_logic;
-	signal statesyncled_read : std_logic;
+--	signal statesyncled_send : std_logic;
+--	signal statesyncled_read : std_logic;
 
 begin	
 	dif <= '0';
@@ -149,18 +149,18 @@ begin
 	end process;
 	
 	--state sync led to make sure read and send are synced
-	process(mclk)
-	begin
-		if (mclk'event and mclk='0') then
-			if (statesyncled_send='1') then
-				if (statesyncled_read='1') then
-					statesync_led <= '1';
-				else 
-					statesyncnot_led <= '1';
-				end if;
-			end if;
-		end if;
-	end process;
+--	process(mclk)
+--	begin
+--		if (mclk'event and mclk='0') then
+--			if (statesyncled_send='1') then
+--				if (statesyncled_read='1') then
+--					statesync_led <= '1';
+--				else 
+--					statesyncnot_led <= '1';
+--				end if;
+--			end if;
+--		end if;
+--	end process;
 	
 	-- next-state logic
 	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
@@ -197,7 +197,7 @@ begin
 				elsif (read_counter=24) then
 					state_next_send <= send1;
 					send_counter_next <= (others => '0');
-					statesyncled_read <= '1';
+--					statesyncled_read <= '1';
 				elsif (read_counter=31) then
 					state_next_read <= read2;
 					read_counter_next <= (others => '0');
@@ -290,7 +290,7 @@ begin
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then
 					send_counter_next <= (others => '0');
-					statesyncled_send <='1';
+--					statesyncled_send <='1';
 				end if;
 		end case;
 	end process;

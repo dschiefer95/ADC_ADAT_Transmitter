@@ -52,7 +52,10 @@ entity adatmitter is
 		cks2 : out std_logic;
 		transmit: out std_logic;
 		hpfe : out std_logic;
-		mono : out std_logic
+		mono : out std_logic;
+		
+		statesync_led : out std_logic;
+		statesyncnot_led : out std_logic
 	);	
 end adatmitter;
 
@@ -67,7 +70,7 @@ architecture adatmitter_arch of adatmitter is
 	signal read_counter, read_counter_next : unsigned(6 downto 0) := "0000000";
 	signal send_counter, send_counter_next : unsigned(6 downto 0) := "0000000";
 	signal ss5_counter, ss5_counter_next : unsigned(4 downto 0) := "00000";
-	signal integrity_counter, integrity_counter_next : unsigned(2 downto 0) := "100";
+	signal integrity_counter, integrity_counter_next : unsigned(1 downto 0) := "11";
 	
 	-- input of T-flipflop
 	signal tff_in : std_logic;
@@ -88,6 +91,10 @@ architecture adatmitter_arch of adatmitter is
 	-- clock divider
 	signal fs_clock : std_logic;
 	signal fs_counter : unsigned(7 downto 0) := "00000000";
+	
+	--sync leds
+	signal statesyncled_send : std_logic;
+	signal statesyncled_read : std_logic;
 
 begin	
 	dif <= '0';
@@ -141,6 +148,20 @@ begin
 		end if;
 	end process;
 	
+	--state sync led to make sure read and send are synced
+	process(mclk)
+	begin
+		if (mclk'event and mclk='0') then
+			if (statesyncled_send='1') then
+				if (statesyncled_read='1') then
+					statesync_led <= '1';
+				else 
+					statesyncnot_led <= '1';
+				end if;
+			end if;
+		end if;
+	end process;
+	
 	-- next-state logic
 	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
 	begin
@@ -167,25 +188,26 @@ begin
 				end if;
 		
 			when read1 =>
-				if (read_counter<24 and integrity_counter/=4) then
+				if (read_counter<24 and integrity_counter/=3) then
 					ch1_next(29 downto 0) <= ch1_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=4) then
+				elsif (read_counter<24 and integrity_counter=3) then
 					ch1_next(29 downto 0) <= ch1_reg(27 downto 0) & '1' & sdto1;
 					integrity_counter_next <= (others => '0');
 				elsif (read_counter=24) then
 					state_next_send <= send1;
 					send_counter_next <= (others => '0');
+					statesyncled_read <= '1';
 				elsif (read_counter=31) then
 					state_next_read <= read2;
 					read_counter_next <= (others => '0');
 				end if;
 				
 			when read2 =>
-				if (read_counter<24 and integrity_counter/=4) then
+				if (read_counter<24 and integrity_counter/=3) then
 					ch2_next(29 downto 0) <= ch2_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=4) then
+				elsif (read_counter<24 and integrity_counter=3) then
 					ch2_next(29 downto 0) <= ch2_reg(27 downto 0) & '1' & sdto1;
 					integrity_counter_next <= (others => '0');
 				elsif (read_counter=31) then
@@ -194,10 +216,10 @@ begin
 				end if;
 				
 			when read3 =>
-				if (read_counter<24 and integrity_counter/=4) then
+				if (read_counter<24 and integrity_counter/=3) then
 					ch3_next(29 downto 0) <= ch3_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=4) then
+				elsif (read_counter<24 and integrity_counter=3) then
 					ch3_next(29 downto 0) <= ch3_reg(27 downto 0) & '1' & sdto1;
 					integrity_counter_next <= (others => '0');
 				elsif (read_counter=31) then
@@ -206,10 +228,10 @@ begin
 				end if;
 				
 			when read4 =>
-				if (read_counter<24 and integrity_counter/=4) then
+				if (read_counter<24 and integrity_counter/=3) then
 					ch4_next(29 downto 0) <= ch4_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=4) then
+				elsif (read_counter<24 and integrity_counter=3) then
 					ch4_next(29 downto 0) <= ch4_reg(27 downto 0) & '1' & sdto1;
 					integrity_counter_next <= (others => '0');
 				elsif (read_counter=31) then
@@ -252,11 +274,11 @@ begin
 				end if;
 				
 			when send5 =>
-				if (send_counter=3 and ss5_counter/=23) then
+				if (send_counter=4 and ss5_counter/=23) then
 					ch5678s_next <= '1';
 					send_counter_next <= (others => '0');
 					ss5_counter_next <= ss5_counter + 1;
-				elsif (send_counter=3 and ss5_counter=23) then
+				elsif (send_counter=4 and ss5_counter=23) then
 					state_next_send <= send6;
 					ch5678s_next <= '1';
 					send_counter_next <= (others => '0');
@@ -268,6 +290,7 @@ begin
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then
 					send_counter_next <= (others => '0');
+					statesyncled_send <='1';
 				end if;
 		end case;
 	end process;

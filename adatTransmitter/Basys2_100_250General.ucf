@@ -4,11 +4,11 @@
 # - rename the used signals according to the project
 
 # clock pin for Basys2 Board
-#NET "mclk" LOC = "B8"; # Bank = 0, Signal name = MCLK
-NET "mclk_pin" LOC = "B8"; # Bank = 0, Signal name = MCLK
+NET "mclk" LOC = "B7"; # Bank = 0, Signal name = MCLK
+NET "hwClk" LOC = "B8"; # Bank = 0, Signal name = hwClk
 #NET "uclk" LOC = "M6"; # Bank = 2, Signal name = UCLK
-NET "mclk_pin" CLOCK_DEDICATED_ROUTE = FALSE;
-#NET "mclk_pin" CLOCK_DEDICATED_ROUTE = TRUE;
+NET "mclk" CLOCK_DEDICATED_ROUTE = FALSE;
+NET "hwClk" CLOCK_DEDICATED_ROUTE = FALSE;
 #NET "uclk" CLOCK_DEDICATED_ROUTE = FALSE;
 
 # Pin assignment for EppCtl
@@ -90,22 +90,22 @@ NET "mclk_pin" CLOCK_DEDICATED_ROUTE = FALSE;
 #NET "OutBlue<1>"  LOC = "H13"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = BLU1 
 
 # Loop Back only tested signals
-NET "pdn_pin" LOC = "B2"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JA1
-NET "tdm1_pin" LOC = "A3"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JA2
-NET "tdm0_pin" LOC = "J3"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JA3
-NET "msn_pin" LOC = "B5"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JA4
+#NET "JA<0>" LOC = "B2"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JA1
+#NET "JA<1>" LOC = "A3"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JA2
+#NET "JA<2>" LOC = "J3"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JA3
+#NET "JA<3>" LOC = "B5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JA4
 
-NET "dif_pin" LOC = "C6"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JB1
-NET "cks0_pin" LOC = "B6"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JB2
-NET "cks1_pin" LOC = "C5"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JB3
-NET "cks2_pin" LOC = "B7"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JB4
+#NET "JB<0> LOC = "C6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JB1
+#NET "JB<1>" LOC = "B6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JB2
+#NET "JB<2>" LOC = "C5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JB3
+#NET "JB<3>" LOC = "B7"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JB4
 
-NET "hpfe_pin" LOC = "A9"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JC1
-NET "mono_pin" LOC = "B9"  | IOSTANDARD = LVCMOS33 | DRIVE = 8; # Bank = 1, Signal name = JC2
-#NET "ovf_pin" LOC = "A10" | IOSTANDARD = LVCMOS33 | DRIVE = 8 | PULLUP ; # Bank = 1, Signal name = JC3
-NET "sdto1_pin" LOC = "C9"  | IOSTANDARD = LVCMOS33 | DRIVE = 8 | PULLUP ; # Bank = 1, Signal name = JC4
+NET "mclk_out" LOC = "A9"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC1
+NET "hwClk_out" LOC = "B9"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC2
+NET "SystemClk_out" LOC = "A10" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC3
+NET "ffclk_out" LOC = "C9"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC4
 
-#NET "mclk_pin" LOC = "C12"  | IOSTANDARD = LVCMOS33 | DRIVE = 8  | PULLUP ; # Bank = 1, Signal name = JD1
-NET "bick_pin" LOC = "A13"  | IOSTANDARD = LVCMOS33 | DRIVE = 8 ; # Bank = 2, Signal name = JD2
-NET "lrck_pin" LOC = "C13"  | IOSTANDARD = LVCMOS33 | DRIVE = 8 ; # Bank = 1, Signal name = JD3
-NET "transmit_pin" LOC = "D12"  | IOSTANDARD = LVCMOS33 | DRIVE = 8 ; # Bank = 2, Signal name = JD4
+NET "Din" LOC = "C12"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JD1
+#NET "JD<1>" LOC = "A13"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 2, Signal name = JD2
+#NET "JD<2>" LOC = "C13"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 1, Signal name = JD3
+#NET "JD<3>" LOC = "D12"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 | PULLDOWN; # Bank = 2, Signal name = JD4

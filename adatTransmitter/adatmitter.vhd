@@ -52,11 +52,11 @@ entity adatmitter is
 		cks2 : out std_logic;
 		transmit: out std_logic;
 		hpfe : out std_logic;
-		mono : out std_logic
+		mono : out std_logic;
 		
---		statesync_led : out std_logic;
---		statesyncnot_led : out std_logic
-	);	
+		statesync_led : out std_logic;
+		statesyncnot_led : out std_logic
+	);
 end adatmitter;
 
 architecture adatmitter_arch of adatmitter is
@@ -90,11 +90,11 @@ architecture adatmitter_arch of adatmitter is
 	
 	-- clock divider
 	signal fs_clock : std_logic;
-	signal fs_counter : unsigned(7 downto 0) := "00000000";
+	signal fs_counter : unsigned(6 downto 0) := "0000000";
 	
 	--sync leds
---	signal statesyncled_send : std_logic;
---	signal statesyncled_read : std_logic;
+	signal statesyncled_send : std_logic;
+	signal statesyncled_read : std_logic;
 
 begin	
 	dif <= '0';
@@ -103,8 +103,8 @@ begin
 	cks0 <= '0';
 	cks1 <= '1';
 	cks2 <= '0';
-	tdm1 <= '1';
-	tdm0 <= '0';
+	tdm1 <= '0';
+	tdm0 <= '1';
 	hpfe <= '1';
 	mono <= '0';
 	
@@ -139,7 +139,7 @@ begin
 			tff_out <= tff_in xor tff_out;
 			
 			-- clock divider for 48khz sample rate
-			if (fs_counter=128) then
+			if (fs_counter=127) then
 				fs_clock <= not(fs_clock);
 				fs_counter <= (others => '0');
 			else
@@ -149,18 +149,16 @@ begin
 	end process;
 	
 	--state sync led to make sure read and send are synced
---	process(mclk)
---	begin
---		if (mclk'event and mclk='0') then
---			if (statesyncled_send='1') then
---				if (statesyncled_read='1') then
---					statesync_led <= '1';
---				else 
---					statesyncnot_led <= '1';
---				end if;
---			end if;
---		end if;
---	end process;
+	process(statesyncled_send, statesyncled_read)
+	begin
+		if (statesyncled_send='1') then
+			if (statesyncled_read='1') then
+				statesync_led <= '1';
+			else 
+				statesyncnot_led <= '1';
+			end if;
+		end if;
+	end process;
 	
 	-- next-state logic
 	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
@@ -197,7 +195,7 @@ begin
 				elsif (read_counter=24) then
 					state_next_send <= send1;
 					send_counter_next <= (others => '0');
---					statesyncled_read <= '1';
+					statesyncled_read <= '1';
 				elsif (read_counter=31) then
 					state_next_read <= read2;
 					read_counter_next <= (others => '0');
@@ -290,7 +288,7 @@ begin
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then
 					send_counter_next <= (others => '0');
---					statesyncled_send <='1';
+					statesyncled_send <='1';
 				end if;
 		end case;
 	end process;

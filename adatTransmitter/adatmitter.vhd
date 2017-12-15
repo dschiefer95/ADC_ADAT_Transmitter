@@ -31,10 +31,7 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity adatmitter is
-	port (
-		mhz50_out : out std_logic;
-		mhz50_in : in std_logic;
-	
+	port (	
 		mclk : in std_logic;
 		sdto1 : in std_logic;
 		--ovf_pin : in std_logic;
@@ -54,8 +51,7 @@ entity adatmitter is
 		hpfe : out std_logic;
 		mono : out std_logic;
 		
-		statesync_led : out std_logic;
-		statesyncnot_led : out std_logic
+		testData_out : out std_logic
 	);
 end adatmitter;
 
@@ -92,9 +88,9 @@ architecture adatmitter_arch of adatmitter is
 	signal fs_clock : std_logic;
 	signal fs_counter : unsigned(6 downto 0) := "0000000";
 	
-	--sync leds
-	signal statesyncled_send : std_logic;
-	signal statesyncled_read : std_logic;
+	-- test data
+	signal testData_counter : unsigned(4 downto 0) := "00000";
+	signal testData : std_logic;
 
 begin	
 	dif <= '0';
@@ -112,8 +108,6 @@ begin
 	bick <= mclk;
 	lrck <= fs_clock;
 	mclk_out <= mclk;
-	
-	mhz50_out <= mhz50_in;
 	
 	process(mclk)
 	begin
@@ -137,8 +131,14 @@ begin
 			
 			-- T flip flop
 			tff_out <= tff_in xor tff_out;
-			
-			-- clock divider for 48khz sample rate
+				
+		end if;
+	end process;
+	
+	-- clock divider for 48khz sample rate
+	process(mclk)
+	begin
+		if (mclk'event and mclk='1') then
 			if (fs_counter=127) then
 				fs_clock <= not(fs_clock);
 				fs_counter <= (others => '0');
@@ -148,17 +148,67 @@ begin
 		end if;
 	end process;
 	
-	--state sync led to make sure read and send are synced
-	process(statesyncled_send, statesyncled_read)
+	-- test data output
+	testData_out <= (not(mclk) and testData);
+	
+	process(mclk)
 	begin
-		if (statesyncled_send='1') then
-			if (statesyncled_read='1') then
-				statesync_led <= '1';
-			else 
-				statesyncnot_led <= '1';
+		if (mclk'event and mclk='0') then
+			testData_counter <= testData_counter + 1;
+			if (testData_counter=0) then
+				testData <= '1';
+			elsif (testData_counter=1) then
+				testData <= '1';
+			elsif (testData_counter=2) then
+				testData <= '1';
+			elsif (testData_counter=3) then
+				testData <= '1';
+			elsif (testData_counter=4) then
+				testData <= '1';
+			elsif (testData_counter=5) then
+				testData <= '1';
+			elsif (testData_counter=6) then
+				testData <= '1';
+			elsif (testData_counter=7) then
+				testData <= '1';
+			elsif (testData_counter=8) then
+				testData <= '1';
+			elsif (testData_counter=9) then
+				testData <= '1';
+			elsif (testData_counter=10) then
+				testData <= '1';
+			elsif (testData_counter=11) then
+				testData <= '1';
+			elsif (testData_counter=12) then
+				testData <= '1';
+			elsif (testData_counter=13) then
+				testData <= '1';
+			elsif (testData_counter=14) then
+				testData <= '1';
+			elsif (testData_counter=15) then
+				testData <= '1';
+			elsif (testData_counter=16) then
+				testData <= '1';
+			elsif (testData_counter=17) then
+				testData <= '1';
+			elsif (testData_counter=18) then
+				testData <= '1';
+			elsif (testData_counter=19) then
+				testData <= '1';
+			elsif (testData_counter=20) then
+				testData <= '1';
+			elsif (testData_counter=21) then
+				testData <= '1';
+			elsif (testData_counter=22) then
+				testData <= '1';
+			elsif (testData_counter=23) then
+				testData <= '1';
+			else
+				testData <= '0';
 			end if;
 		end if;
 	end process;
+			
 	
 	-- next-state logic
 	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
@@ -195,7 +245,6 @@ begin
 				elsif (read_counter=24) then
 					state_next_send <= send1;
 					send_counter_next <= (others => '0');
-					statesyncled_read <= '1';
 				elsif (read_counter=31) then
 					state_next_read <= read2;
 					read_counter_next <= (others => '0');
@@ -288,7 +337,6 @@ begin
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then
 					send_counter_next <= (others => '0');
-					statesyncled_send <='1';
 				end if;
 		end case;
 	end process;

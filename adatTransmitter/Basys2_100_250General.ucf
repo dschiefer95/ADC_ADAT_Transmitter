@@ -4,7 +4,7 @@
 # - rename the used signals according to the project
 
 # clock pin for Basys2 Board
-NET "mhz50_in" LOC = "B8"; # Bank = 0, Signal name = MCLK
+#NET "mhz50_in" LOC = "B8"; # Bank = 0, Signal name = MCLK
 #NET "uclk" LOC = "M6"; # Bank = 2, Signal name = UCLK
 #NET "mclk" CLOCK_DEDICATED_ROUTE = FALSE;
 #NET "mclk_pin" CLOCK_DEDICATED_ROUTE = TRUE;
@@ -99,7 +99,7 @@ NET "cks0" LOC = "B6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal 
 NET "cks1" LOC = "C5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB3
 NET "mclk" LOC = "B7"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB4
 
-NET "mhz50_out" LOC = "A9" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC1
+NET "testData_out" LOC = "A9" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC1
 NET "bick" LOC = "B9"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC2
 NET "lrck" LOC = "A10" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC3
 NET "mclk_out" LOC = "C9" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC4

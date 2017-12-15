@@ -89,14 +89,14 @@
 #NET "OutBlue<1>"  LOC = "H13"  | DRIVE = 2  | PULLUP ; # Bank = 1, Signal name = BLU1 
 
 # Loop Back only tested signals
-NET "pdn" LOC = "B2"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA1
-NET "tdm1" LOC = "A3"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA2
-NET "tdm0" LOC = "J3"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA3
-NET "msn" LOC = "B5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA4
+#NET "pdn" LOC = "B2"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA1	BROKEN!!!
+NET "read4state" LOC = "A3"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA2
+NET "read3state" LOC = "J3"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA3
+NET "read2state" LOC = "B5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2; # Bank = 1, Signal name = JA4
 
-NET "dif" LOC = "C6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB1
-NET "cks0" LOC = "B6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB2
-NET "cks1" LOC = "C5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB3
+NET "read1state" LOC = "C6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB1
+#NET "cks0" LOC = "B6"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB2
+#NET "cks1" LOC = "C5"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB3
 NET "mclk" LOC = "B7"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JB4
 
 NET "testData_out" LOC = "A9" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC1
@@ -104,8 +104,7 @@ NET "bick" LOC = "B9"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal 
 NET "lrck" LOC = "A10" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC3
 NET "mclk_out" LOC = "C9" | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JC4
 
-NET "cks2" LOC = "C12"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JD1
-NET "hpfe" LOC = "A13"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 2, Signal name = JD2
+#NET "cks2" LOC = "C12"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JD1
+#NET "hpfe" LOC = "A13"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 2, Signal name = JD2
 NET "sdto1" LOC = "C13"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 1, Signal name = JD3
 NET "transmit" LOC = "D12"  | IOSTANDARD = LVCMOS33 | DRIVE = 2 ; # Bank = 2, Signal name = JD4
-#NET "ovf_pin" LOC = "D12"  | IOSTANDARD = LVCMOS33 | DRIVE = 8 ; # Bank = 2, Signal name = JD4

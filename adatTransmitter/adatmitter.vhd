@@ -39,19 +39,23 @@ entity adatmitter is
 		mclk_out : out std_logic;
 		bick : out std_logic;
 		lrck : out std_logic;
-		pdn : out std_logic;
-		tdm1 : out std_logic;
-		tdm0 : out std_logic;
-		msn : out std_logic;
-		dif : out std_logic;
-		cks0 : out std_logic;
-		cks1 : out std_logic;
-		cks2 : out std_logic;
+--		pdn : out std_logic;
+--		tdm1 : out std_logic;
+--		tdm0 : out std_logic;
+--		msn : out std_logic;
+--		dif : out std_logic;
+--		cks0 : out std_logic;
+--		cks1 : out std_logic;
+--		cks2 : out std_logic;
 		transmit: out std_logic;
-		hpfe : out std_logic;
-		mono : out std_logic;
+--		hpfe : out std_logic;
+--		mono : out std_logic;
 		
-		testData_out : out std_logic
+		testData_out : out std_logic;
+		read1state : out std_logic;
+		read2state : out std_logic;
+		read3state : out std_logic;
+		read4state : out std_logic
 	);
 end adatmitter;
 
@@ -84,30 +88,36 @@ architecture adatmitter_arch of adatmitter is
 	signal ch5678s_reg : std_logic;
 	signal ch5678s_next : std_logic;
 	
-	-- clock divider
+	-- 48khz sample rate
 	signal fs_clock : std_logic;
+	signal fs_clock_next : std_logic;
 	signal fs_counter : unsigned(6 downto 0) := "0000000";
+	signal fs_counter_next : unsigned(6 downto 0) := "0000000";
 	
 	-- test data
-	signal testData_counter : unsigned(4 downto 0) := "00000";
 	signal testData : std_logic;
+	signal testData_next : std_logic;
+	signal testData_counter : unsigned(4 downto 0) := "00000";
+	signal testData_counter_next : unsigned(4 downto 0) := "00000";
+	
 
 begin	
-	dif <= '0';
-	pdn <= '1';
-	msn <= '0';
-	cks0 <= '0';
-	cks1 <= '1';
-	cks2 <= '0';
-	tdm1 <= '0';
-	tdm0 <= '1';
-	hpfe <= '1';
-	mono <= '0';
+--	dif <= '0';
+--	pdn <= '1';
+--	msn <= '0';
+--	cks0 <= '0';
+--	cks1 <= '1';
+--	cks2 <= '0';
+--	tdm1 <= '0';
+--	tdm0 <= '1';
+--	hpfe <= '1';
+--	mono <= '0';
 	
 	transmit <= tff_out;
 	bick <= mclk;
 	lrck <= fs_clock;
 	mclk_out <= mclk;
+	testData_out <= testData and not(mclk);
 	
 	process(mclk)
 	begin
@@ -131,87 +141,92 @@ begin
 			
 			-- T flip flop
 			tff_out <= tff_in xor tff_out;
+			
+			-- 48khz sample rate
+			fs_clock <= fs_clock_next;
+			fs_counter <= fs_counter_next;
+			
+			-- test data output
+			testData <= testData_next;
+			testData_counter <= testData_counter_next;
 				
 		end if;
 	end process;
 	
-	-- clock divider for 48khz sample rate
-	process(mclk)
+	-- 48khz sample rate next state
+	process(fs_counter, fs_clock)
 	begin
-		if (mclk'event and mclk='1') then
-			if (fs_counter=127) then
-				fs_clock <= not(fs_clock);
-				fs_counter <= (others => '0');
-			else
-				fs_counter <= fs_counter + 1;
-			end if;
+		if (fs_counter=127) then
+			fs_clock_next <= not(fs_clock);
+			fs_counter_next <= (others => '0');
+		else
+			fs_counter_next <= fs_counter + 1;
+			fs_clock_next <= fs_clock;
 		end if;
 	end process;
 	
-	-- test data output
-	testData_out <= (not(mclk) and testData);
-	
-	process(mclk)
+	-- test data output next state
+	process(testData_counter, testData)
 	begin
-		if (mclk'event and mclk='0') then
-			testData_counter <= testData_counter + 1;
-			if (testData_counter=0) then
-				testData <= '1';
-			elsif (testData_counter=1) then
-				testData <= '1';
-			elsif (testData_counter=2) then
-				testData <= '1';
-			elsif (testData_counter=3) then
-				testData <= '1';
-			elsif (testData_counter=4) then
-				testData <= '1';
-			elsif (testData_counter=5) then
-				testData <= '1';
-			elsif (testData_counter=6) then
-				testData <= '1';
-			elsif (testData_counter=7) then
-				testData <= '1';
-			elsif (testData_counter=8) then
-				testData <= '1';
-			elsif (testData_counter=9) then
-				testData <= '1';
-			elsif (testData_counter=10) then
-				testData <= '1';
-			elsif (testData_counter=11) then
-				testData <= '1';
-			elsif (testData_counter=12) then
-				testData <= '1';
-			elsif (testData_counter=13) then
-				testData <= '1';
-			elsif (testData_counter=14) then
-				testData <= '1';
-			elsif (testData_counter=15) then
-				testData <= '1';
-			elsif (testData_counter=16) then
-				testData <= '1';
-			elsif (testData_counter=17) then
-				testData <= '1';
-			elsif (testData_counter=18) then
-				testData <= '1';
-			elsif (testData_counter=19) then
-				testData <= '1';
-			elsif (testData_counter=20) then
-				testData <= '1';
-			elsif (testData_counter=21) then
-				testData <= '1';
-			elsif (testData_counter=22) then
-				testData <= '1';
-			elsif (testData_counter=23) then
-				testData <= '1';
-			else
-				testData <= '0';
-			end if;
+		testData_counter_next <= testData_counter + 1;
+		testData_next <= testData;
+		
+		if (testData_counter=0) then
+			testData_next <= '1';
+		elsif (testData_counter=1) then
+			testData_next <= '1';
+		elsif (testData_counter=2) then
+			testData_next <= '1';
+		elsif (testData_counter=3) then
+			testData_next <= '1';
+		elsif (testData_counter=4) then
+			testData_next <= '1';
+		elsif (testData_counter=5) then
+			testData_next <= '1';
+		elsif (testData_counter=6) then
+			testData_next <= '1';
+		elsif (testData_counter=7) then
+			testData_next <= '1';
+		elsif (testData_counter=8) then
+			testData_next <= '1';
+		elsif (testData_counter=9) then
+			testData_next <= '1';
+		elsif (testData_counter=10) then
+			testData_next <= '1';
+		elsif (testData_counter=11) then
+			testData_next <= '1';
+		elsif (testData_counter=12) then
+			testData_next <= '1';
+		elsif (testData_counter=13) then
+			testData_next <= '1';
+		elsif (testData_counter=14) then
+			testData_next <= '1';
+		elsif (testData_counter=15) then
+			testData_next <= '1';
+		elsif (testData_counter=16) then
+			testData_next <= '1';
+		elsif (testData_counter=17) then
+			testData_next <= '1';
+		elsif (testData_counter=18) then
+			testData_next <= '1';
+		elsif (testData_counter=19) then
+			testData_next <= '1';
+		elsif (testData_counter=20) then
+			testData_next <= '1';
+		elsif (testData_counter=21) then
+			testData_next <= '1';
+		elsif (testData_counter=22) then
+			testData_next <= '1';
+		elsif (testData_counter=23) then
+			testData_next <= '1';
+		else
+			testData_next <= '0';
 		end if;
 	end process;
 			
 	
 	-- next-state logic
-	process (state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
+	process (fs_clock, fs_counter, state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
 	begin
 		state_next_read <= state_reg_read;
 		state_next_send <= state_reg_send;
@@ -227,15 +242,21 @@ begin
 		ch4_next(29 downto 0) <= ch4_reg(29 downto 0);
 		ch5678s_next <= '0';
 		
+		read1state <= '0';
+		read2state <= '0';
+		read3state <= '0';
+		read4state <= '0';
+		
 		-- read state machine
 		case state_reg_read is
 			when idle_read =>
-				if (read_counter=127) then
+				if (fs_clock='0' and fs_counter=127) then
 					state_next_read <= read1;
 					read_counter_next <= (others => '0');
 				end if;
 		
 			when read1 =>
+--			read1state <= '1';
 				if (read_counter<24 and integrity_counter/=3) then
 					ch1_next(29 downto 0) <= ch1_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
@@ -251,6 +272,7 @@ begin
 				end if;
 				
 			when read2 =>
+--			read2state <= '1';
 				if (read_counter<24 and integrity_counter/=3) then
 					ch2_next(29 downto 0) <= ch2_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
@@ -263,6 +285,7 @@ begin
 				end if;
 				
 			when read3 =>
+--			read3state <= '1';
 				if (read_counter<24 and integrity_counter/=3) then
 					ch3_next(29 downto 0) <= ch3_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
@@ -275,6 +298,7 @@ begin
 				end if;
 				
 			when read4 =>
+--			read4state <= '1';
 				if (read_counter<24 and integrity_counter/=3) then
 					ch4_next(29 downto 0) <= ch4_reg(28 downto 0) & sdto1;
 					integrity_counter_next <= integrity_counter + 1;
@@ -288,10 +312,11 @@ begin
 		end case;
 		
 		-- send state machine
-		case state_reg_send is
+		case state_reg_send is			
 			when idle_send =>
 			
 			when send1 =>
+				read1state <= '1';
 				ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
 				if (send_counter=29) then
 					state_next_send <= send2;
@@ -299,6 +324,7 @@ begin
 				end if;
 			
 			when send2 =>
+				read2state <= '1';
 				ch2_next(29 downto 1) <= ch2_reg(28 downto 0);
 				if (send_counter=29) then
 					state_next_send <= send3;
@@ -306,6 +332,7 @@ begin
 				end if;
 			
 			when send3 =>
+				read3state <= '1';
 				ch3_next(29 downto 1) <= ch3_reg(28 downto 0);
 				if (send_counter=29) then
 					state_next_send <= send4;
@@ -313,6 +340,7 @@ begin
 				end if;
 			
 			when send4 =>
+				read4state <= '1';
 				ch4_next(29 downto 1) <= ch4_reg(28 downto 0);
 				if(send_counter=29) then
 					state_next_send <= send5;
@@ -321,6 +349,7 @@ begin
 				end if;
 				
 			when send5 =>
+				read3state <= '1';
 				if (send_counter=4 and ss5_counter/=23) then
 					ch5678s_next <= '1';
 					send_counter_next <= (others => '0');
@@ -333,6 +362,7 @@ begin
 				end if;
 					
 			when send6 =>
+				read4state <= '1';
 				if (send_counter=10) then
 					ch5678s_next <= '1';
 				elsif (send_counter=15) then

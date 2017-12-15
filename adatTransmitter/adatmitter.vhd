@@ -113,12 +113,6 @@ begin
 --	hpfe <= '1';
 --	mono <= '0';
 	
-	transmit <= tff_out;
-	bick <= mclk;
-	lrck <= fs_clock;
-	mclk_out <= mclk;
-	testData_out <= testData and not(mclk);
-	
 	process(mclk)
 	begin
 		if (mclk'event and mclk='0') then
@@ -152,25 +146,184 @@ begin
 				
 		end if;
 	end process;
+			
 	
-	-- 48khz sample rate next state
-	process(fs_counter, fs_clock)
+	-- next-state logic
+	process (testData_counter, testData, tff_out, fs_clock, fs_counter, state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, ch5678s_reg, sdto1)
 	begin
+		state_next_read <= state_reg_read;
+		state_next_send <= state_reg_send;
+		
+		read_counter_next <= read_counter + 1;
+		integrity_counter_next <= integrity_counter;
+		
+		send_counter_next <= send_counter + 1;
+		ss5_counter_next <= ss5_counter;
+		
+		ch1_next(29 downto 0) <= ch1_reg(29 downto 0);
+		ch2_next(29 downto 0) <= ch2_reg(29 downto 0);
+		ch3_next(29 downto 0) <= ch3_reg(29 downto 0);
+		ch4_next(29 downto 0) <= ch4_reg(29 downto 0);
+		ch5678s_next <= '0';
+		
+		read1state <= '0';
+		read2state <= '0';
+		read3state <= '0';
+		read4state <= '0';
+		
+		testData_counter_next <= testData_counter + 1;
+		testData_next <= testData;
+		
+		-- 48khz sample rate next state
 		if (fs_counter=127) then
 			fs_clock_next <= not(fs_clock);
 			fs_counter_next <= (others => '0');
+			
+			testData_counter_next <= "00001";
+			testData_next <= '1';
 		else
 			fs_counter_next <= fs_counter + 1;
 			fs_clock_next <= fs_clock;
 		end if;
-	end process;
-	
-	-- test data output next state
-	process(testData_counter, testData)
-	begin
-		testData_counter_next <= testData_counter + 1;
-		testData_next <= testData;
 		
+		-- read state machine
+		case state_reg_read is
+			when idle_read =>
+				if (fs_clock='0' and fs_counter=127) then
+					state_next_read <= read1;
+					read_counter_next <= (others => '0');
+				end if;
+		
+			when read1 =>
+				read1state <= '1';
+				if (read_counter<24 and integrity_counter/=3) then
+					ch1_next(29 downto 0) <= ch1_reg(28 downto 0) & sdto1;
+					integrity_counter_next <= integrity_counter + 1;
+				elsif (read_counter<24 and integrity_counter=3) then
+					ch1_next(29 downto 0) <= ch1_reg(27 downto 0) & '1' & sdto1;
+					integrity_counter_next <= (others => '0');
+				elsif (read_counter=24) then
+--					state_next_send <= send1;
+--					send_counter_next <= (others => '0');
+				elsif (read_counter=31) then
+					state_next_read <= read2;
+					read_counter_next <= (others => '0');
+					integrity_counter_next <= "11";
+					
+					state_next_send <= send1;
+					send_counter_next <= (others => '0');
+				end if;
+				
+			when read2 =>
+--				read2state <= '1';
+				if (read_counter<24 and integrity_counter/=3) then
+					ch2_next(29 downto 0) <= ch2_reg(28 downto 0) & sdto1;
+					integrity_counter_next <= integrity_counter + 1;
+				elsif (read_counter<24 and integrity_counter=3) then
+					ch2_next(29 downto 0) <= ch2_reg(27 downto 0) & '1' & sdto1;
+					integrity_counter_next <= (others => '0');
+				elsif (read_counter=31) then
+					state_next_read <= read3;
+					read_counter_next <= (others => '0');
+					integrity_counter_next <= "11";
+				end if;
+				
+			when read3 =>
+--				read3state <= '1';
+				if (read_counter<24 and integrity_counter/=3) then
+					ch3_next(29 downto 0) <= ch3_reg(28 downto 0) & sdto1;
+					integrity_counter_next <= integrity_counter + 1;
+				elsif (read_counter<24 and integrity_counter=3) then
+					ch3_next(29 downto 0) <= ch3_reg(27 downto 0) & '1' & sdto1;
+					integrity_counter_next <= (others => '0');
+				elsif (read_counter=31) then
+					state_next_read <= read4;
+					read_counter_next <= (others => '0');
+					integrity_counter_next <= "11";
+				end if;
+				
+			when read4 =>
+--				read4state <= '1';
+				if (read_counter<24 and integrity_counter/=3) then
+					ch4_next(29 downto 0) <= ch4_reg(28 downto 0) & sdto1;
+					integrity_counter_next <= integrity_counter + 1;
+				elsif (read_counter<24 and integrity_counter=3) then
+					ch4_next(29 downto 0) <= ch4_reg(27 downto 0) & '1' & sdto1;
+					integrity_counter_next <= (others => '0');
+				elsif (read_counter=31) then
+					state_next_read <= idle_read;
+					read_counter_next <= (others => '0');
+					integrity_counter_next <= "11";
+				end if;
+		end case;
+		
+		-- send state machine
+		case state_reg_send is			
+			when idle_send =>
+				tff_in <= '0';
+			when send1 =>
+				tff_in <= ch1_reg(29);
+				read2state <= '1';
+				ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
+				if (send_counter=29) then
+					state_next_send <= send2;
+					send_counter_next <= (others => '0');
+				end if;
+			
+			when send2 =>
+				tff_in <= ch2_reg(29);
+--				read2state <= '1';
+				ch2_next(29 downto 1) <= ch2_reg(28 downto 0);
+				if (send_counter=29) then
+					state_next_send <= send3;
+					send_counter_next <= (others => '0');
+				end if;
+			
+			when send3 =>
+				tff_in <= ch3_reg(29);
+--				read3state <= '1';
+				ch3_next(29 downto 1) <= ch3_reg(28 downto 0);
+				if (send_counter=29) then
+					state_next_send <= send4;
+					send_counter_next <= (others => '0');
+				end if;
+			
+			when send4 =>
+				tff_in <= ch4_reg(29);
+--				read4state <= '1';
+				ch4_next(29 downto 1) <= ch4_reg(28 downto 0);
+				if(send_counter=29) then
+					state_next_send <= send5;
+					send_counter_next <= (others => '0');
+					ch5678s_next <= '1';
+					ss5_counter_next <= (others => '0');
+				end if;
+				
+			when send5 =>
+				tff_in <= ch5678s_reg;
+--				read3state <= '1';
+				if (send_counter=4 and ss5_counter/=23) then
+					ch5678s_next <= '1';
+					send_counter_next <= (others => '0');
+					ss5_counter_next <= ss5_counter + 1;
+				elsif (send_counter=4 and ss5_counter=23) then
+					state_next_send <= send6;
+					ch5678s_next <= '1';
+					send_counter_next <= (others => '0');
+					ss5_counter_next <= (others => '0');
+				end if;
+					
+			when send6 =>
+				tff_in <= ch5678s_reg;
+--				read4state <= '1';
+				if (send_counter=10) then
+					ch5678s_next <= '1';
+				elsif (send_counter=15) then
+					send_counter_next <= (others => '0');
+				end if;
+		end case;
+		
+		-- test data output next state
 		if (testData_counter=0) then
 			testData_next <= '1';
 		elsif (testData_counter=1) then
@@ -223,181 +376,14 @@ begin
 			testData_next <= '0';
 		end if;
 	end process;
-			
-	
-	-- next-state logic
-	process (fs_clock, fs_counter, state_reg_read, read_counter, state_reg_send, send_counter, ss5_counter, integrity_counter, ch1_reg, ch2_reg, ch3_reg, ch4_reg, sdto1)
-	begin
-		state_next_read <= state_reg_read;
-		state_next_send <= state_reg_send;
-		
-		read_counter_next <= read_counter + 1;
-		integrity_counter_next <= integrity_counter;
-		send_counter_next <= send_counter + 1;
-		ss5_counter_next <= ss5_counter;
-		
-		ch1_next(29 downto 0) <= ch1_reg(29 downto 0);
-		ch2_next(29 downto 0) <= ch2_reg(29 downto 0);
-		ch3_next(29 downto 0) <= ch3_reg(29 downto 0);
-		ch4_next(29 downto 0) <= ch4_reg(29 downto 0);
-		ch5678s_next <= '0';
-		
-		read1state <= '0';
-		read2state <= '0';
-		read3state <= '0';
-		read4state <= '0';
-		
-		-- read state machine
-		case state_reg_read is
-			when idle_read =>
-				if (fs_clock='0' and fs_counter=127) then
-					state_next_read <= read1;
-					read_counter_next <= (others => '0');
-				end if;
-		
-			when read1 =>
---			read1state <= '1';
-				if (read_counter<24 and integrity_counter/=3) then
-					ch1_next(29 downto 0) <= ch1_reg(28 downto 0) & sdto1;
-					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=3) then
-					ch1_next(29 downto 0) <= ch1_reg(27 downto 0) & '1' & sdto1;
-					integrity_counter_next <= (others => '0');
-				elsif (read_counter=24) then
-					state_next_send <= send1;
-					send_counter_next <= (others => '0');
-				elsif (read_counter=31) then
-					state_next_read <= read2;
-					read_counter_next <= (others => '0');
-				end if;
-				
-			when read2 =>
---			read2state <= '1';
-				if (read_counter<24 and integrity_counter/=3) then
-					ch2_next(29 downto 0) <= ch2_reg(28 downto 0) & sdto1;
-					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=3) then
-					ch2_next(29 downto 0) <= ch2_reg(27 downto 0) & '1' & sdto1;
-					integrity_counter_next <= (others => '0');
-				elsif (read_counter=31) then
-					state_next_read <= read3;
-					read_counter_next <= (others => '0');
-				end if;
-				
-			when read3 =>
---			read3state <= '1';
-				if (read_counter<24 and integrity_counter/=3) then
-					ch3_next(29 downto 0) <= ch3_reg(28 downto 0) & sdto1;
-					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=3) then
-					ch3_next(29 downto 0) <= ch3_reg(27 downto 0) & '1' & sdto1;
-					integrity_counter_next <= (others => '0');
-				elsif (read_counter=31) then
-					state_next_read <= read4;
-					read_counter_next <= (others => '0');
-				end if;
-				
-			when read4 =>
---			read4state <= '1';
-				if (read_counter<24 and integrity_counter/=3) then
-					ch4_next(29 downto 0) <= ch4_reg(28 downto 0) & sdto1;
-					integrity_counter_next <= integrity_counter + 1;
-				elsif (read_counter<24 and integrity_counter=3) then
-					ch4_next(29 downto 0) <= ch4_reg(27 downto 0) & '1' & sdto1;
-					integrity_counter_next <= (others => '0');
-				elsif (read_counter=31) then
-					state_next_read <= idle_read;
-					read_counter_next <= (others => '0');
-				end if;
-		end case;
-		
-		-- send state machine
-		case state_reg_send is			
-			when idle_send =>
-			
-			when send1 =>
-				read1state <= '1';
-				ch1_next(29 downto 1) <= ch1_reg(28 downto 0);
-				if (send_counter=29) then
-					state_next_send <= send2;
-					send_counter_next <= (others => '0');
-				end if;
-			
-			when send2 =>
-				read2state <= '1';
-				ch2_next(29 downto 1) <= ch2_reg(28 downto 0);
-				if (send_counter=29) then
-					state_next_send <= send3;
-					send_counter_next <= (others => '0');
-				end if;
-			
-			when send3 =>
-				read3state <= '1';
-				ch3_next(29 downto 1) <= ch3_reg(28 downto 0);
-				if (send_counter=29) then
-					state_next_send <= send4;
-					send_counter_next <= (others => '0');
-				end if;
-			
-			when send4 =>
-				read4state <= '1';
-				ch4_next(29 downto 1) <= ch4_reg(28 downto 0);
-				if(send_counter=29) then
-					state_next_send <= send5;
-					send_counter_next <= (others => '0');
-					ch5678s_next <= '1';
-				end if;
-				
-			when send5 =>
-				read3state <= '1';
-				if (send_counter=4 and ss5_counter/=23) then
-					ch5678s_next <= '1';
-					send_counter_next <= (others => '0');
-					ss5_counter_next <= ss5_counter + 1;
-				elsif (send_counter=4 and ss5_counter=23) then
-					state_next_send <= send6;
-					ch5678s_next <= '1';
-					send_counter_next <= (others => '0');
-					ss5_counter_next <= (others => '0');
-				end if;
-					
-			when send6 =>
-				read4state <= '1';
-				if (send_counter=10) then
-					ch5678s_next <= '1';
-				elsif (send_counter=15) then
-					send_counter_next <= (others => '0');
-				end if;
-		end case;
-	end process;
 	
 	
 	-- output logic
-	process(state_reg_send, ch1_reg, ch2_reg, ch3_reg, ch4_reg, ch5678s_reg)
-	begin
-		case state_reg_send is
-			when idle_send =>
-				tff_in <= '0';
-				
-			when send1 =>
-				tff_in <= ch1_reg(29);
-				
-			when send2 =>
-				tff_in <= ch2_reg(29);
-				
-			when send3 =>
-				tff_in <= ch3_reg(29);
-				
-			when send4 =>
-				tff_in <= ch4_reg(29);
-				
-			when send5 =>
-				tff_in <= ch5678s_reg;
-				
-			when send6 =>
-				tff_in <= ch5678s_reg;
-		end case;
-	end process;
+	transmit <= tff_out;
+	bick <= mclk;
+	lrck <= fs_clock;
+	mclk_out <= mclk;
+	testData_out <= testData;
 				
 end adatmitter_arch;
 
